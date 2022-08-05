@@ -1174,7 +1174,7 @@ func converterForType(typ string) driver.ValueConverter {
 		return driver.NotNull{Converter: driver.DefaultParameterConverter}
 	case "nulldatetime":
 		return driver.Null{Converter: driver.DefaultParameterConverter}
-	case "interface{}":
+	case "any", "interface{}":
 		return anyTypeConverter{}
 	}
 	panic("invalid fakedb column type of " + typ)
@@ -1208,7 +1208,7 @@ func colTypeToReflectType(typ string) reflect.Type {
 		return reflect.TypeOf(sql.NullFloat64{})
 	case "datetime":
 		return reflect.TypeOf(time.Time{})
-	case "interface{}":
+	case "any", "interface{}":
 		return reflect.TypeOf(new(interface{})).Elem()
 	}
 	panic("invalid fakedb column type of " + typ)

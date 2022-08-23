@@ -269,6 +269,21 @@ func (db *fakeDB) createTable(name string, columnNames, columnTypes []string) er
 	return nil
 }
 
+func (db *fakeDB) dropTable(name string) error {
+	db.mu.Lock()
+	t, ok := db.table(name)
+	db.mu.Unlock()
+	if !ok {
+		return fmt.Errorf("fakedb: table %q doesn't exist", name)
+	}
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	delete(db.tables, name)
+
+	return nil
+}
+
 // must be called with db.mu lock held
 func (db *fakeDB) table(table string) (*table, bool) {
 	if db.tables == nil {
@@ -508,6 +523,16 @@ func (c *fakeConn) prepareCreate(stmt *fakeStmt, parts []string) (*fakeStmt, err
 	return stmt, nil
 }
 
+// parts are table
+func (c *fakeConn) prepareDrop(stmt *fakeStmt, parts []string) (*fakeStmt, error) {
+	if len(parts) != 1 {
+		stmt.Close()
+		return nil, errf("invalid CREATE syntax with %d parts; want 1", len(parts))
+	}
+	stmt.table = parts[0]
+	return stmt, nil
+}
+
 // parts are table|col=?,col2=val
 func (c *fakeConn) prepareInsert(ctx context.Context, stmt *fakeStmt, parts []string) (*fakeStmt, error) {
 	if len(parts) != 2 {
@@ -644,6 +669,8 @@ func (c *fakeConn) PrepareContext(ctx context.Context, query string) (driver.Stm
 			stmt, err = c.prepareSelect(stmt, parts)
 		case "CREATE":
 			stmt, err = c.prepareCreate(stmt, parts)
+		case "DROP":
+			stmt, err = c.prepareDrop(stmt, parts)
 		case "INSERT":
 			stmt, err = c.prepareInsert(ctx, stmt, parts)
 		case "NOSERT":
@@ -745,6 +772,11 @@ func (s *fakeStmt) ExecContext(ctx context.Context, args []driver.NamedValue) (d
 		return driver.ResultNoRows, nil
 	case "CREATE":
 		if err := db.createTable(s.table, s.colName, s.colType); err != nil {
+			return nil, err
+		}
+		return driver.ResultNoRows, nil
+	case "DROP":
+		if err := db.dropTable(s.table); err != nil {
 			return nil, err
 		}
 		return driver.ResultNoRows, nil

@@ -25,6 +25,10 @@ The query syntax is as follows
 
         CREATE|tableName|columnName1=columnType1,columnName2=columnType2
 
+* DROP: Drops a table
+
+        DROP|tableName
+
 * INSERT: Inserts a row into a table
 
         INSERT|tableName|column1=?,column2=?

@@ -36,6 +36,8 @@ func TestQuery(t *testing.T) {
 			t.Fatalf("User %d should have name %q but had %q", id, expectedName, name)
 		}
 	}
+
+	exec(t, db, "DROP|users")
 }
 
 func exec(tb testing.TB, exec *sql.DB, query string, args ...interface{}) sql.Result {

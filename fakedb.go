@@ -945,8 +945,10 @@ func (s *fakeStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (
 			colIdx[name] = idx
 		}
 		if len(s.colName) == 0 {
+			s.colName = make([]string, len(t.colname))
 			for i, c := range t.colname {
 				colIdx[c] = i
+				s.colName[i] = c
 			}
 		}
 

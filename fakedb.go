@@ -478,6 +478,9 @@ func (c *fakeConn) prepareSelect(stmt *fakeStmt, parts []string) (*fakeStmt, err
 	stmt.table = parts[0]
 
 	stmt.colName = strings.Split(parts[1], ",")
+	if parts[1] == "" {
+		stmt.colName = nil
+	}
 	for n, colspec := range strings.Split(parts[2], ",") {
 		if colspec == "" {
 			continue
@@ -940,6 +943,11 @@ func (s *fakeStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (
 				return nil, fmt.Errorf("fakedb: unknown column name %q", name)
 			}
 			colIdx[name] = idx
+		}
+		if len(s.colName) == 0 {
+			for i, c := range t.colname {
+				colIdx[c] = i
+			}
 		}
 
 		mrows := []*row{}

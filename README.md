@@ -33,7 +33,7 @@ The query syntax is as follows
 
         INSERT|tableName|column1=?,column2=?
 
-* SELECT: Queries the table
+* SELECT: Queries the table. If the column list is empty, all columns are selected.
 
         SELECT|tableName|column1,column2|where=?,where2=?named
 
